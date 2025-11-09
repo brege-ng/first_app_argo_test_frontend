@@ -1,10 +1,6 @@
 name: 🚀 PROD Build
 
 on:
-  push:
-    branches:
-      - main
-      - release
   workflow_dispatch:
 
 permissions:
