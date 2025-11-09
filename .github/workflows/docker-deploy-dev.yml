@@ -1,0 +1,11 @@
+name: 🚀 DEV Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    uses: cabinet-ceipi/infra-devops-pipelines/.github/workflows/build-manual.yml@main
+    with:
+      dockerfile: ./Dockerfile-dev
+      context: .

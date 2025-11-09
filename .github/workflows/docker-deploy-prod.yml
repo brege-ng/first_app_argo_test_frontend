@@ -1,0 +1,15 @@
+name: 🚀 PROD Build
+
+on:
+  push:
+    branches:
+      - main
+      - release
+  workflow_dispatch:
+
+jobs:
+  build:
+    uses: cabinet-ceipi/infra-devops-pipelines/.github/workflows/build-auto.yml@main
+    with:
+      dockerfile: ./Dockerfile-prod
+      context: .
