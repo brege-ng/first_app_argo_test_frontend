@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    uses: brege-ng/infra-devops-pipelines/.github/workflows/build-auto.yml@main
+    uses: brege-ng/infra_devops_pipelines/.github/workflows/build-auto.yml@main
     with:
       dockerfile: ./Dockerfile-prod
       context: .
