@@ -15,7 +15,7 @@ interface CarBuyer {
 }
 
 export default function Register() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4201/api' 
   // || 'http://localhost:4201/api'
 
   const [formData, setFormData] = useState({
