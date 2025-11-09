@@ -1,4 +1,4 @@
-name: 🚀 PROD Build
+name: 🚀 DEV Build
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
 permissions:
   contents: read
   packages: write
-
+  
 jobs:
   build:
     uses: brege-ng/infra_devops_pipelines/.github/workflows/build-manual.yml@main
