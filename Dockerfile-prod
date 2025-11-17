@@ -1,51 +1,38 @@
-# ------------------------------
-# Stage 1: Builder
-# ------------------------------
-FROM node:22.14.0-alpine3.20 AS builder
+# --- Étape 1 : Build ---
+FROM node:22.14.0 AS builder
 
 WORKDIR /app
 
-# Copier package.json et package-lock.json
 COPY package*.json ./
 
-# Installer toutes les dépendances (dev + prod)
+# Installer toutes les dépendances pour builder l'app
 RUN npm ci
 
-# Copier le reste du projet
 COPY . .
 
-# Construire l'application Next.js
+# Construire l'application (ex: Next.js ou Tailwind build)
 RUN npm run build
 
-# ------------------------------
-# Stage 2: Image finale prod
-# ------------------------------
-FROM node:22.14.0-alpine3.20 AS prod
+# --- Étape 2 : Image de production ---
+FROM node:22.14.0 AS prod
 
 WORKDIR /app
 
-ENV NODE_ENV=production
-ENV HOST=0.0.0.0
-ENV PORT=3000
-
-# Copier seulement les fichiers nécessaires pour prod
+# Copier uniquement les fichiers nécessaires
 COPY package*.json ./
 
-# Installer uniquement les dépendances prod
+# Installer seulement les dépendances de production
 RUN npm ci --omit=dev
 
-# Copier le build Next.js depuis le builder
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/next.config.js ./next.config.js
+# Copier le build depuis l'étape builder
+COPY --from=builder /app/.next ./.next    # si Next.js
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/next.config.js ./
 
-# Si tu as des fichiers statiques dans public, copier seulement si ça existe
-# COPY --from=builder /app/public ./public
-
-# Exposer le port
 EXPOSE 3000
 
-# Lancer l'application
 CMD ["npm", "start"]
+
 
 
 
