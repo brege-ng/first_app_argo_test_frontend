@@ -1,37 +1,48 @@
-# --- Étape 1 : Build ---
+# ----------------------
+# Étape 1 : Build
+# ----------------------
 FROM node:22.14.0 AS builder
 
+# Dossier de travail
 WORKDIR /app
 
+# Copier uniquement package.json et package-lock.json pour profiter du cache Docker
 COPY package*.json ./
 
-# Installer toutes les dépendances pour builder l'app
+# Installer toutes les dépendances (y compris dev)
 RUN npm ci
 
+# Copier tout le code source (pages, components, public, etc.)
 COPY . .
 
-# Construire l'application (ex: Next.js ou Tailwind build)
+# Construire l'application Next.js
 RUN npm run build
 
-# --- Étape 2 : Image de production ---
+# ----------------------
+# Étape 2 : Production
+# ----------------------
 FROM node:22.14.0 AS prod
 
 WORKDIR /app
 
-# Copier uniquement les fichiers nécessaires
+# Copier package.json pour installer uniquement les dépendances prod
 COPY package*.json ./
 
-# Installer seulement les dépendances de production
+# Installer seulement les dépendances nécessaires à l'exécution
 RUN npm ci --omit=dev
 
-# Copier le build depuis l'étape builder
-COPY --from=builder /app/.next ./.next    # si Next.js
+# Copier le build et les fichiers nécessaires depuis l'étape builder
+COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/next.config.js ./
+COPY --from=builder /app/package.json ./  # parfois nécessaire pour npm start
 
+# Exposer le port utilisé par Next.js
 EXPOSE 3000
 
+# Lancer l'application en production
 CMD ["npm", "start"]
+
 
 
 
