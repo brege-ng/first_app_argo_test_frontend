@@ -1,70 +1,46 @@
-# ----------------------
-# Étape 1 : Build
-# ----------------------
+# Multi-stage build for security and smaller image size
 FROM node:22.14.0-alpine AS builder
 
-# Dossier de travail
+ENV HOST='0.0.0.0'
+ENV PORT='3000'
+
 WORKDIR /app
 
-# Copier uniquement package.json et package-lock.json pour profiter du cache Docker
+# Copy package files
 COPY package*.json ./
 
-# Installer toutes les dépendances (y compris dev)
-RUN npm ci
+# Install dependencies
+RUN npm ci --only=production && \
+    npm cache clean --force
 
-# Copier tout le code source (pages, components, public, etc.)
+# Copy application code
 COPY . .
 
-# Construire l'application Next.js
+# Build the application
 RUN npm run build
 
-# ----------------------
-# Étape 2 : Production
-# ----------------------
-FROM node:22.14.0-alpine AS prod
+# Production stage with minimal Alpine base
+FROM node:22.14.0-alpine AS production
+
+ENV HOST='0.0.0.0'
+ENV PORT='3000'
+ENV NODE_ENV=production
 
 WORKDIR /app
 
-# Copier package.json pour installer uniquement les dépendances prod
-COPY package*.json ./
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
 
-# Installer seulement les dépendances nécessaires à l'exécution
-RUN npm ci --omit=dev
+# Copy dependencies and built application from builder
+COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nodejs:nodejs /app/package*.json ./
+COPY --from=builder --chown=nodejs:nodejs /app/.next ./.next
+COPY --from=builder --chown=nodejs:nodejs /app/public ./public
 
-# Copier le build et les fichiers nécessaires depuis l'étape builder
-COPY --from=builder /app/.next ./.next
-#COPY --from=builder /app/public ./public
-COPY --from=builder /app/next.config.js ./
-#COPY --from=builder /app/package.json ./  # parfois nécessaire pour npm start
+# Switch to non-root user
+USER nodejs
 
-# Exposer le port utilisé par Next.js
 EXPOSE 3000
 
-# Lancer l'application en production
 CMD ["npm", "start"]
-
-
-
-
-
-
-
-
-#FROM node:22.14.0
-
-#ENV HOST='0.0.0.0'
-#ENV PORT='3000'
-
-#WORKDIR /app
-
-#COPY package*.json ./
-
-#RUN npm ci
-
-#COPY . .
-
-#RUN npm run build
-
-#EXPOSE 3000
-
-#CMD [ "npm", "start" ]
