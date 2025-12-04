@@ -11,7 +11,8 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # Install ALL dependencies (dev + production) for build stage
-RUN npm ci && \
+# Using --prefer-online to ensure fresh packages and avoid cache issues
+RUN npm ci --prefer-online && \
     npm cache clean --force
 
 # Copy application code
@@ -38,7 +39,7 @@ RUN addgroup -g 1001 -S nodejs && \
 
 # Copy package files and install ONLY production dependencies
 COPY --chown=nodejs:nodejs package.json package-lock.json ./
-RUN npm ci --only=production && \
+RUN npm ci --only=production --prefer-online && \
     npm cache clean --force
 
 # Copy built application from builder
